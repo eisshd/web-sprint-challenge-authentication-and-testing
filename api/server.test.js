@@ -62,7 +62,7 @@ describe('restricted.js', () => {
 
 })
 
-describe('restricted.js', () => {
+describe('server.js', () => {
   it.todo('[13] only logged-in users should have access to /api/jokes', () => {
   })
 })
