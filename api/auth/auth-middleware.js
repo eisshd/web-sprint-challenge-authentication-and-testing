@@ -21,10 +21,13 @@ const checkUsernameExists = async (req, res, next) => {
 const checkValidUsername = async (req, res, next) => {
   try{
     const user = await User.findBy({username: req.body.username})
-    if(user.length > 0){
+    if(user.length > 0 && req.body.username && req.body.password){
       req.user = user[0]
       next()
-    } else {
+    } else if (!req.body.username || !req.body.password) {
+      next({status: 401, message: 'username and password required'})
+    }
+    else {
       next({status: 422, message: 'Invalid credentials'})
     }
   }
