@@ -4,17 +4,35 @@ const { JWT_SECRET} = require('../../config')
 
 const checkUsernameExists = async (req, res, next) => {
     try{
-      const [user] = await User.findBy({username: req.body.username})
-      if(!user){
+      const user = await User.findBy({username: req.body.username})
+      if(user.length > 0){
         next({status: 422, message: 'username taken'})
+      } else if (!req.body.username || !req.body.password) {
+        next({status: 401, message: 'username and password required'})
       } else {
         next()
       }
     }
-    catch(err){
-      next(err)
+    catch{
+      next({status: 401, message: 'username and password required'})
     }
 }
+
+const checkValidUsername = async (req, res, next) => {
+  try{
+    const user = await User.findBy({username: req.body.username})
+    if(user.length > 0){
+      req.user = user[0]
+      next()
+    } else {
+      next({status: 422, message: 'Invalid credentials'})
+    }
+  }
+  catch{
+    next(res.status(401).json({message: 'username and password required'}))
+  }
+}
+
 
 const buildToken = (user) => {
   const payload = {
@@ -29,5 +47,6 @@ const buildToken = (user) => {
 
 module.exports = {
   checkUsernameExists,
+  checkValidUsername,
   buildToken
 }

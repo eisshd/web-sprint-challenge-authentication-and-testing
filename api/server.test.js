@@ -4,6 +4,8 @@ const db = require('../data/dbConfig')
 const server = require('./server.js')
 const bcrypt = require('bcryptjs')
 
+
+
 beforeAll(async () => {
   await db.migrate.rollback()
   await db.migrate.latest()
@@ -17,52 +19,46 @@ afterAll(async () => {
 
 describe('auth-router.js', () => {
   describe('registers a new account', () => {
-    it.todo('[1] In order to register a new account the client must provide `username` and `password`', () => {
-
+    it('[1] In order to register a new account the client must provide `username` and `password`', async () => {
+      await request(server).post('/api/auth/register').send({ username: 'Captain Marvel', password: 'foobar' })
+      const user = await db('users').where('username','Captain Marvel').first()
+      expect(user).toMatchObject({ username: 'Captain Marvel'})
+    }, 750)
+    it('[2] responds with the correct message on SUCCESSFUL registration', async () => {
+      const res = await request(server).post('/api/auth/register').send({ username: 'Captain Marvel', password: 'foobar'})
+      const hash = res.body.password
+      expect(res.body).toEqual({id: 1, username: 'Captain Marvel', password: hash})
+      expect(bcrypt.compareSync('foobar', res.body.password)).toBeTruthy()
+    }, 750)
+    it('[3] responds with the correct message on missing `username` and `password`', async () => {
+      const res = await request(server).post('/api/auth/register').send({})
+      expect(res.body).toEqual({message: 'username and password required'})
     })
-    it.todo('[2] responds with the correct message on SUCCESSFUL registration', () => {
-
-    })
-    it.todo('[3] responds with the correct message on missing `username` and `password`', () => {
-
-    })
-    it.todo('[4] responds with the correct message on "username taken"', () => {
-
+    it('[4] responds with the correct message on "username taken"', async () => {
+      await request(server).post('/api/auth/register').send({ username: 'Captain Marvel', password: 'foobar'})
+      const res = await request(server).post('/api/auth/register').send({ username: 'Captain Marvel', password: 'foobar'})
+      expect(res.body).toEqual({message: 'username taken'})
     })
   })
   describe('log into an existing account', () => {
-    it.todo('[5] In order to log into an existing account the client must provide `username` and `password`', () => {
-
+    it('[5] responds with the correct message on SUCCESSFUL login', async () => {
+      await request(server).post('/api/auth/register').send({ username: 'Captain Marvel', password: 'foobar'})
+      const res = await request(server).post('/api/auth/login').send({ username: 'Captain Marvel', password: 'foobar'})
+      expect(res.body).toEqual({message: 'Welcome Captain Marvel'})
     })
-    it.todo('[6] responds with the correct message on SUCCESSFUL login', () => {
-
+    it('[6] responds with the correct message on missing `username` and `password`', async () => {
+      await request(server).post('/api/auth/register').send({ username: 'Captain Marvel', password: 'foobar'})
+      const res = await request(server).post('/api/auth/login').send({})
+      expect(res.body).toEqual({message: 'username and password required'})
     })
-    it.todo('[7] responds with the correct message on missing `username` and `password`', () => {
-
+    it('[7] responds with the correct message due to `username` not existing in the db', async  () => {
+      const res = await request(server).post('/api/auth/login').send({username: 'Captain Marvel', password: 'foobar'})
+      expect(res.body).toEqual({message: 'Invalid credentials'})
     })
-    it.todo('[8] responds with the correct message due to `username` not existing in the db', () => {
-
+    it('[8] responds with the correct message due to `password` being incorrect', async () => {
+      await request(server).post('/api/auth/register').send({ username: 'Captain Marvel', password: 'foobar'})
+      const res = await request(server).post('/api/auth/login').send({username: 'Captain Marvel', password: 'baz'})
+      expect(res.body).toEqual({message: 'Invalid credentials'})
     })
-    it.todo('[9] responds with the correct message due to `password` being incorrect', () => {
-
-    })
-  })
-})
-
-describe('restricted.js', () => {
-  it.todo('[10] On valid token in the Authorization header, call next', () => {
-
-  })
-  it.todo('[11] responds with the correct message on missing token', () => {
-
-  })
-  it.todo('[12] responds with the correct message on invalid or expired token', () => {
-
-  })
-
-})
-
-describe('server.js', () => {
-  it.todo('[13] only logged-in users should have access to /api/jokes', () => {
   })
 })
