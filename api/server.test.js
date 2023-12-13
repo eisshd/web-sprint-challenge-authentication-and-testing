@@ -44,7 +44,7 @@ describe('auth-router.js', () => {
     it('[5] responds with the correct message on SUCCESSFUL login', async () => {
       await request(server).post('/api/auth/register').send({ username: 'Captain Marvel', password: 'foobar'})
       const res = await request(server).post('/api/auth/login').send({ username: 'Captain Marvel', password: 'foobar'})
-      expect(res.body).toEqual({message: 'Welcome Captain Marvel'})
+      expect(res.body).toEqual({message: 'Welcome Captain Marvel', token: res.body.token})
     })
     it('[6] responds with the correct message on missing `username` and `password`', async () => {
       await request(server).post('/api/auth/register').send({ username: 'Captain Marvel', password: 'foobar'})
